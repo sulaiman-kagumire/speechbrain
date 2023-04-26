@@ -1,9 +1,11 @@
 """
-LJspeech data preparation.
-Download: https://data.keithito.com/data/speech/LJSpeech-1.1.tar.bz2
+Speechbrain LJSpeech preparation script For Common Voice.
 
-Authors
- * Yingzhi WANG 2022
+We have Common Voice data structured in the same format as the LJSpeech
+dataset, though with some small changes needed to be parsed successfully.
+
+Branched from:
+https://github.com/speechbrain/speechbrain/blob/develop/recipes/LJSpeech/TTS/ljspeech_prepare.py
 """
 
 import os
@@ -29,7 +31,7 @@ def prepare_ljspeech(
     data_folder,
     save_folder,
     splits=["train", "valid"],
-    split_ratio=[90, 10],
+    split_ratio=[80, 10, 10],
     seed=1234,
     skip_prep=False,
 ):
@@ -180,44 +182,10 @@ def split_sets(data_folder, splits, split_ratio):
 
     meta_csv = list(csv_reader)
 
-    index_for_sessions = []
-    session_id_start = "LJ001"
-    index_this_session = []
-    for i in range(len(meta_csv)):
-        session_id = meta_csv[i][0].split("-")[0]
-        if session_id == session_id_start:
-            index_this_session.append(i)
-            if i == len(meta_csv) - 1:
-                index_for_sessions.append(index_this_session)
-        else:
-            index_for_sessions.append(index_this_session)
-            session_id_start = session_id
-            index_this_session = [i]
-
-    session_len = [len(session) for session in index_for_sessions]
-
-    data_split = {}
-    for i, split in enumerate(splits):
-        data_split[split] = []
-        for j in range(len(index_for_sessions)):
-            if split == "train":
-                random.shuffle(index_for_sessions[j])
-                n_snts = int(session_len[j] * split_ratio[i] / sum(split_ratio))
-                data_split[split].extend(index_for_sessions[j][0:n_snts])
-                del index_for_sessions[j][0:n_snts]
-            if split == "valid":
-                if "test" in splits:
-                    random.shuffle(index_for_sessions[j])
-                    n_snts = int(
-                        session_len[j] * split_ratio[i] / sum(split_ratio)
-                    )
-                    data_split[split].extend(index_for_sessions[j][0:n_snts])
-                    del index_for_sessions[j][0:n_snts]
-                else:
-                    data_split[split].extend(index_for_sessions[j])
-            if split == "test":
-                data_split[split].extend(index_for_sessions[j])
-
+    data_split = {
+          'train': list(range(len(meta_csv))),
+          'valid': list(range(len(meta_csv) - 500, len(meta_csv)))
+    }
     return data_split, meta_csv
 
 
