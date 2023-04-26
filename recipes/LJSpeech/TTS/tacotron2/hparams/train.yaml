@@ -53,7 +53,7 @@ skip_prep: False
 
 # Use the original preprocessing from nvidia
 # The cleaners to be used (applicable to nvidia only)
-text_cleaners: ['english_cleaners']
+text_cleaners: ['basic_cleaners']
 
 ################################
 # Audio Parameters             #
